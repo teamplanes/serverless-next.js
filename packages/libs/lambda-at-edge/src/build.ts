@@ -234,7 +234,7 @@ class Builder {
         join(this.outputDir, DEFAULT_LAMBDA_CODE_DIR, "pages"),
         {
           filter: (file: string) => {
-            const isNotPrerenderedHTMLPage = path.extname(file) !== ".html";
+            //const isNotPrerenderedHTMLPage = path.extname(file) !== ".html";
             const isNotStaticPropsJSONFile = path.extname(file) !== ".json";
             const isNotApiPage = pathToPosix(file).indexOf("pages/api") === -1;
 
@@ -252,7 +252,7 @@ class Builder {
 
             return (
               isNotApiPage &&
-              isNotPrerenderedHTMLPage &&
+              //isNotPrerenderedHTMLPage &&
               isNotStaticPropsJSONFile &&
               isNotExcludedJSFile
             );

@@ -26,6 +26,10 @@ import jsonwebtoken from "jsonwebtoken";
 import type { Readable } from "stream";
 import { createRedirectResponse, getRedirectPath } from "./routing/redirector";
 
+// Set either lambda or s3Direct to true, but not both
+const lambda = false;
+const s3Direct = false;
+
 const basePath = RoutesManifestJson.basePath;
 const NEXT_PREVIEW_DATA_COOKIE = "__next_preview_data";
 const NEXT_PRERENDER_BYPASS_COOKIE = "__prerender_bypass";
@@ -327,6 +331,59 @@ const handleOriginRequest = async ({
     }
 
     addS3HostHeader(request, normalisedS3DomainName);
+
+    // Return from Lambda
+    if (lambda) {
+      return {
+        status: "200",
+        statusDescription: "OK",
+        headers: {
+          "content-type": [
+            {
+              key: "Content-Type",
+              value: "text/html"
+            }
+          ]
+        },
+        body: require("fs").readFileSync(`./pages${request.uri}`, "utf8")
+      };
+    }
+
+    if (s3Direct) {
+      const { domainName, region } = request.origin!.s3!;
+      const bucketName = domainName.replace(`.s3.${region}.amazonaws.com`, "");
+
+      // Lazily import only S3Client to reduce init times until actually needed
+      const { S3Client } = await import("@aws-sdk/client-s3/S3Client");
+      const s3 = new S3Client({ region: request.origin?.s3?.region });
+      console.log("BucketName: " + bucketName);
+      console.log("S3origin path: " + s3Origin.path);
+      console.log("URI: " + request.uri);
+      const s3Params = {
+        Bucket: bucketName,
+        Key: `${s3Origin.path.replace("/", "")}${request.uri}`
+      };
+      const { GetObjectCommand } = await import(
+        "@aws-sdk/client-s3/commands/GetObjectCommand"
+      );
+      const { Body } = await s3.send(new GetObjectCommand(s3Params));
+      const getStream = await import("get-stream");
+      const bodyString = await getStream.default(Body as Readable);
+      return {
+        status: "200",
+        statusDescription: "OK",
+        headers: {
+          "content-type": [
+            {
+              key: "Content-Type",
+              value: "text/html"
+            }
+          ]
+        },
+        body: bodyString
+      };
+    }
+
     return request;
   }
 
@@ -336,6 +393,59 @@ const handleOriginRequest = async ({
     s3Origin.path = `${basePath}/static-pages`;
     request.uri = pagePath.replace("pages", "");
     addS3HostHeader(request, normalisedS3DomainName);
+
+    // Return from Lambda
+    if (lambda) {
+      return {
+        status: "200",
+        statusDescription: "OK",
+        headers: {
+          "content-type": [
+            {
+              key: "Content-Type",
+              value: "text/html"
+            }
+          ]
+        },
+        body: require("fs").readFileSync(`./pages${request.uri}`, "utf8")
+      };
+    }
+
+    if (s3Direct) {
+      // Return from direct S3 call
+      const { domainName, region } = request.origin!.s3!;
+      const bucketName = domainName.replace(`.s3.${region}.amazonaws.com`, "");
+
+      // Lazily import only S3Client to reduce init times until actually needed
+      const { S3Client } = await import("@aws-sdk/client-s3/S3Client");
+      const s3 = new S3Client({ region: request.origin?.s3?.region });
+      console.log("2. BucketName: " + bucketName);
+      console.log("2. S3origin path: " + s3Origin.path);
+      console.log("2. uri: " + request.uri);
+      const s3Params = {
+        Bucket: bucketName,
+        Key: `${s3Origin.path.replace("/", "")}${request.uri}`
+      };
+      const { GetObjectCommand } = await import(
+        "@aws-sdk/client-s3/commands/GetObjectCommand"
+      );
+      const { Body } = await s3.send(new GetObjectCommand(s3Params));
+      const getStream = await import("get-stream");
+      const bodyString = await getStream.default(Body as Readable);
+      return {
+        status: "200",
+        statusDescription: "OK",
+        headers: {
+          "content-type": [
+            {
+              key: "Content-Type",
+              value: "text/html"
+            }
+          ]
+        },
+        body: bodyString
+      };
+    }
 
     return request;
   }

@@ -1,2 +1,9 @@
 next-app:
   component: "../../serverless-components/nextjs-component"
+  #component: "@sls-next/serverless-component@latest"
+  inputs:
+    cloudfront:
+      defaults:
+        minTTL: 0
+        maxTTL: 0
+        defaultTTL: 0
