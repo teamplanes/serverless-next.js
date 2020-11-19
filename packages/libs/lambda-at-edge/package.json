@@ -1,9 +1,9 @@
 {
-  "name": "@sls-next/lambda-at-edge",
+  "name": "@planes/lambda-at-edge",
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.8.0-alpha.6",
+  "version": "1.8.0-alpha.7",
   "description": "Provides handlers that can be used in CloudFront Lambda@Edge to deploy next.js applications to the edge",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
