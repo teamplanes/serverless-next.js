@@ -1,6 +1,6 @@
 {
-  "name": "@planes/next-aws-cloudfront",
-  "version": "1.10.1",
+  "name": "@sls-next/next-aws-cloudfront",
+  "version": "1.6.0",
   "publishConfig": {
     "access": "public"
   },

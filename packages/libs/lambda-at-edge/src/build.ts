@@ -232,7 +232,7 @@ class Builder {
     shouldMinify: boolean
   ) {
     const source = require.resolve(
-      `@sls-next/lambda-at-edge/dist/${handlerType}${
+      `@planes/lambda-at-edge/dist/${handlerType}${
         shouldMinify ? ".min" : ""
       }.js`
     );
@@ -276,7 +276,7 @@ class Builder {
       );
     }
 
-    let prerenderManifest = require(join(
+    const prerenderManifest = require(join(
       this.dotNextDir,
       "prerender-manifest.json"
     ));
